@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101018">
+  <title>ORBIT — генератор решений</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101018;
+      --panel: rgba(24, 24, 35, .82);
+      --panel-strong: #1e1e2b;
+      --text: #f7f4ff;
+      --muted: #aaa7bd;
+      --purple: #c5a4ff;
+      --mint: #8de7d2;
+      --pink: #ff9cc8;
+      --border: rgba(255, 255, 255, .1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 12% 8%, rgba(146, 104, 255, .2), transparent 31%),
+        radial-gradient(ellipse at 92% 80%, rgba(84, 222, 192, .13), transparent 32%),
+        radial-gradient(ellipse at 72% 0%, rgba(255, 126, 186, .09), transparent 28%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 3px;
+    }
+
+    .page {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 25px 20px 40px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 45px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 850;
+      letter-spacing: 1.5px;
+    }
+
+    .brand-icon {
+      display: grid;
+      width: 43px;
+      height: 43px;
+      place-items: center;
+      border-radius: 15px;
+      color: #171320;
+      background: linear-gradient(135deg, var(--purple), var(--mint));
+      box-shadow: 0 8px 32px rgba(197, 164, 255, .26);
+      font-size: 22px;
+    }
+
+    .header-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .hero {
+      margin: 0 auto 30px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: #d9d0ff;
+      background: rgba(255, 255, 255, .035);
+      font-size: 12px;
+      letter-spacing: .4px;
+    }
+
+    .eyebrow span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 12px var(--mint);
+    }
+
+    h1 {
+      margin: 18px 0 10px;
+      font-size: clamp(40px, 8vw, 76px);
+      line-height: 1;
+      letter-spacing: -4px;
+    }
+
+    h1 .gradient {
+      color: transparent;
+      background: linear-gradient(100deg, var(--purple), var(--pink), var(--mint));
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .hero p {
+      max-width: 530px;
+      margin: 15px auto 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 28px auto 18px;
+    }
+
+    .tab {
+      padding: 11px 17px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .035);
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .tab:hover { color: var(--text); transform: translateY(-1px); }
+
+    .tab.active {
+      border-color: rgba(197, 164, 255, .4);
+      color: var(--text);
+      background: rgba(197, 164, 255, .13);
+      box-shadow: 0 0 24px rgba(197, 164, 255, .08);
+    }
+
+    .workspace {
+      width: min(700px, 100%);
+      margin: 0 auto;
+    }
+
+    .panel {
+      padding: clamp(20px, 5vw, 36px);
+      border: 1px solid var(--border);
+      border-radius: 25px;
+      background: var(--panel);
+      box-shadow: 0 25px 80px rgba(0, 0, 0, .24);
+      backdrop-filter: blur(18px);
+    }
+
+    .section { display: none; }
+    .section.active { display: block; animation: appear .3s ease both; }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title { margin: 0; font-size: 22px; letter-spacing: -.5px; }
+    .section-description { margin: 7px 0 22px; color: var(--muted); font-size: 14px; }
+
+    .field-label {
+      display: block;
+      margin: 0 0 8px;
+      color: #dedbea;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .question-input, .number-input {
+      width: 100%;
+      min-height: 50px;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--text);
+      background: rgba(10, 10, 18, .48);
+    }
+
+    .question-input::placeholder, .number-input::placeholder { color: #777487; }
+
+    .primary-button {
+      display: flex;
+      width: 100%;
+      min-height: 51px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 14px;
+      color: #171320;
+      background: linear-gradient(105deg, var(--purple), var(--mint));
+      box-shadow: 0 8px 24px rgba(152, 190, 216, .12);
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .primary-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .primary-button:active { transform: translateY(1px); }
+
+    .result {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, .035);
+      text-align: center;
+    }
+
+    .result.show { display: block; animation: appear .28s ease both; }
+
+    .result-caption {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+
+    .answer {
+      margin: 5px 0;
+      color: var(--mint);
+      font-size: clamp(38px, 9vw, 58px);
+      font-weight: 900;
+      letter-spacing: -2px;
+    }
+
+    .answer.no { color: var(--pink); }
+    .answer.maybe { color: var(--purple); }
+
+    .result-detail { color: var(--muted); font-size: 13px; }
+
+    .range-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .number-result {
+      margin: 5px 0;
+      color: var(--purple);
+      font-size: clamp(54px, 12vw, 82px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -4px;
+      overflow-wrap: anywhere;
+    }
+
+    .footnote {
+      margin: 20px 0 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    footer {
+      margin-top: 25px;
+      color: #858295;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .page { padding: 17px 13px 30px; }
+      header { margin-bottom: 34px; }
+      .header-note { max-width: 130px; text-align: right; font-size: 11px; }
+      h1 { letter-spacing: -2.5px; }
+      .tab { flex: 1; padding: 10px 8px; font-size: 13px; }
+      .panel { border-radius: 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">✦</span>
+        <span>ORBIT</span>
+      </div>
+      <div class="header-note">Маленький генератор больших решений</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow"><span></span> ТВОЙ МОМЕНТ ЯСНОСТИ</div>
+      <h1>Спроси у <span class="gradient">ORBIT</span></h1>
+      <p>Оставь сомнения на орбите. Получи ответ «да или нет» или найди случайное число.</p>
+    </section>
+
+    <nav class="tabs" aria-label="Разделы генератора">
+      <button class="tab active" type="button" data-tab="answer">✧ Да или нет</button>
+      <button class="tab" type="button" data-tab="number">⠿ Случайное число</button>
+    </nav>
+
+    <main class="workspace">
+      <div class="panel">
+        <section class="section active" id="answerSection">
+          <h2 class="section-title">Задай свой вопрос</h2>
+          <p class="section-description">Сформулируй его так, чтобы можно было ответить «да» или «нет».</p>
+
+          <form id="answerForm">
+            <label class="field-label" for="question">Твой вопрос</label>
+            <input
+              class="question-input"
+              id="question"
+              type="text"
+              maxlength="300"
+              placeholder="Например: Стоит ли попробовать что-то новое?"
+              autocomplete="off"
+              required
+            >
+            <button class="primary-button" type="submit">Получить ответ <span aria-hidden="true">→</span></button>
+          </form>
+
+          <div class="result" id="answerResult" aria-live="polite">
+            <div class="result-caption">Ответ ORBIT</div>
+            <div class="answer" id="answerText"></div>
+            <div class="result-detail" id="answerDetail"></div>
+          </div>
+        </section>
+
+        <section class="section" id="numberSection">
+          <h2 class="section-title">Пусть выпадет число</h2>
+          <p class="section-description">Выбери границы диапазона — генератор выдаст целое число включительно.</p>
+
+          <form id="numberForm">
+            <div class="range-fields">
+              <div>
+                <label class="field-label" for="minNumber">От</label>
+                <input class="number-input" id="minNumber" type="number" value="1" step="1" required>
+              </div>
+              <div>
+                <label class="field-label" for="maxNumber">До</label>
+                <input class="number-input" id="maxNumber" type="number" value="100" step="1" required>
+              </div>
+            </div>
+            <button class="primary-button" type="submit">Сгенерировать число <span aria-hidden="true">✦</span></button>
+          </form>
+
+          <div class="result" id="numberResult" aria-live="polite">
+            <div class="result-caption">Твоё число</div>
+            <div class="number-result" id="numberText"></div>
+            <div class="result-detail" id="numberDetail"></div>
+          </div>
+        </section>
+      </div>
+
+      <p class="footnote">Ответ «да или нет» выбирается случайно и не предсказывает будущее.</p>
+    </main>
+
+    <footer>ORBIT · Создан для любопытства ✦</footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    const tabs = document.querySelectorAll(".tab");
+    const answerSection = document.querySelector("#answerSection");
+    const numberSection = document.querySelector("#numberSection");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const showAnswer = tab.dataset.tab === "answer";
+
+        tabs.forEach((item) => item.classList.toggle("active", item === tab));
+        answerSection.classList.toggle("active", showAnswer);
+        numberSection.classList.toggle("active", !showAnswer);
+      });
+    });
+
+    const answers = [
+      { text: "ДА", className: "", detail: "Похоже, стоит попробовать ✨" },
+      { text: "НЕТ", className: "no", detail: "Возможно, сейчас лучше подождать 🌙" },
+      { text: "ДА", className: "", detail: "Сегодня хороший день для смелого шага ☀️" },
+      { text: "НЕТ", className: "no", detail: "Прислушайся к себе и не торопись 🌿" },
+      { text: "ВОЗМОЖНО", className: "maybe", detail: "Ответ зависит от того, что подсказывает тебе здравый смысл ✦" }
+    ];
+
+    document.querySelector("#answerForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const question = document.querySelector("#question").value.trim();
+      if (!question) return;
+
+      const result = answers[Math.floor(Math.random() * answers.length)];
+      const answerText = document.querySelector("#answerText");
+
+      answerText.textContent = result.text;
+      answerText.className = "answer " + result.className;
+      document.querySelector("#answerDetail").textContent = result.detail;
+      document.querySelector("#answerResult").classList.add("show");
+    });
+
+    document.querySelector("#numberForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const minInput = document.querySelector("#minNumber");
+      const maxInput = document.querySelector("#maxNumber");
+      const min = Number(minInput.value);
+      const max = Number(maxInput.value);
+
+      if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max)) {
+        alert("Введите целые безопасные числа.");
+        return;
+      }
+
+      if (min > max) {
+        alert("Число «От» не должно быть больше числа «До».");
+        return;
+      }
+
+      const number = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      document.querySelector("#numberText").textContent = String(number);
+      document.querySelector("#numberDetail").textContent = `В диапазоне от ${min} до ${max}`;
+      document.querySelector("#numberResult").classList.add("show");
+    });
+  </script>
+</body>
+</html>
